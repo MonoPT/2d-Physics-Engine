@@ -28,9 +28,6 @@ class Core{
 
     protected engineUpdate(deltaTime:number): void {
         this.InputHandler.update()
-
-
-
     }
 
     get fps() {
@@ -45,7 +42,7 @@ class Core{
 interface Core {
     drawLine(startPos : Vector, endPos: Vector, color?: string): void;
     drawCircle(startPos: Vector, radius: number, angle?:number, color?: string, fill?: string): void
-    drawRectangle(position: Vector, width: number, height: number, angle?:number ,color?: string) : void
+    drawRectangle(position: Vector, width: number, height: number, angle?:number ,color?: string, fill?: string) : void
 }
 
 
@@ -66,7 +63,7 @@ Core.prototype.drawCircle = function(centerPos, radius, angle = 0, color = 'blac
     ctx.save();
     ctx.beginPath();
     ctx.translate(centerPos.x, centerPos.y);
-    ctx.rotate(angle * Math.PI/180);
+    ctx.rotate(angle);
     ctx.arc(0, 0, radius, 0, 2 * Math.PI, false);
     ctx.strokeStyle = color
     ctx.stroke()
@@ -84,17 +81,19 @@ Core.prototype.drawCircle = function(centerPos, radius, angle = 0, color = 'blac
     
 }
 
-Core.prototype.drawRectangle = function(position, width, height, angle = 0 ,color = 'black' ) {
+Core.prototype.drawRectangle = function(position, width, height, angle = 0 ,color = 'black', fill = "rgba(232, 79, 79, 1)" ) {
     let ctx = this.ctx;
     
     //Draw Rect
     ctx.save();
     ctx.beginPath();
     ctx.translate(position.x, position.y);
-    ctx.rotate(angle * Math.PI/180);
+    ctx.rotate(angle);
     ctx.rect(-width / 2, -height / 2, width, height);
     ctx.strokeStyle = color
     ctx.stroke()
+    ctx.fillStyle = fill
+    ctx.fill()
     ctx.closePath()
     
     //Draw line
