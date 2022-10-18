@@ -1,6 +1,4 @@
-import Engine from "../engine";
 import { Vector } from "../Vector";
-
 
 export class SAT_Collisions {
     static IntersectCircles(circleCenterA: Vector, radiusCircleA: number ,circleCenterB: Vector, radiusCircleB: number) : false | {depth: number, normal: Vector} {
@@ -22,8 +20,10 @@ export class SAT_Collisions {
         return {depth: depth, normal: normal}
     }
 
-    static IntersectPolygons(VerticesA: Vector[], VerticesB: Vector[]) {
-        
+    static IntersectPolygons(VerticesA: Vector[], VerticesB: Vector[]) : false | {depth: number, normal: Vector} {
+        let output = {depth: Number.MAX_VALUE, normal: Vector.Zero}
+
+
         for (let i = 0; i < VerticesA.length - 1; i++) {
             let p1 = VerticesA[i]
             let p2 = VerticesA[(i + 1) % VerticesA.length]
@@ -36,6 +36,14 @@ export class SAT_Collisions {
             let B = SAT_Collisions.projectVetices(VerticesB, axis)
             
             if(A.min > B.max || B.min > A.max) return false
+
+            ///Check depth to resolve collision between polygons
+            let axisDepth: number = Math.min(B.max - A.min, A.max - B.min)
+
+            if (axisDepth < output.depth) {
+                output.depth = axisDepth
+                output.normal = axis
+            }
 
         }
 
@@ -52,15 +60,48 @@ export class SAT_Collisions {
             
 
             if(A.min > B.max || B.min > A.max) return false  
+
+            ///Check depth to resolve collision between polygons
+            let axisDepth: number = Math.min(B.max - A.min, A.max - B.min)
+
+            if (axisDepth < output.depth) {
+                output.depth = axisDepth
+                output.normal = axis
+            }
         }
 
-        return true
+        output.normal = new Vector(-output.normal.y, output.normal.x)
+        output.depth = output.depth / output.normal.length + 1
+
+        
+        let outVecNormalized = Vector.normalize(output.normal)
+        let CenterA: Vector = this.findArithmeticMean(VerticesA)
+        let CenterB: Vector = this.findArithmeticMean(VerticesB)
+
+        let direction = Vector.subtract(CenterB, CenterA)
+
+        if(Vector.dot(direction, outVecNormalized) < 0) {
+            output.normal = Vector.invert(output.normal)
+        }
+
+        return output
     }
 
-    static projectVertices() {
+    private static findArithmeticMean(Vertices: Vector[]): Vector {
+        let sumX: number = 0
+        let sumY: number = 0
 
+
+        for (let i = 0; i < Vertices.length; i++) {
+            const v = Vertices[i];
+            
+            sumX += v.x
+            sumY += v.y
+        }
+
+        return new Vector(sumX / Vertices.length, sumY / Vertices.length)
     }
- 
+
     private static projectVetices(vertices: Vector[], axis: Vector) : {min: number, max:number} {
              
         let min:any = null

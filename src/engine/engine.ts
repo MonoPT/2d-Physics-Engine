@@ -36,7 +36,7 @@ class Engine extends Core {
     }
 
     initialize() {
-        for (let index = 0; index < 12; index++) {
+        for (let index = 0; index < 10; index++) {
             let type = Math.random() < .5 ? ShapeType.Box : ShapeType.Circle
             let x = Math.round(MathLib.randomInBeetween(300, this.canvasElement.width / 2))
             let y = Math.round(MathLib.randomInBeetween(120, this.canvasElement.height / 2))
@@ -75,6 +75,10 @@ class Engine extends Core {
 
         //Draw elements on canvas
         this.draw()
+
+        let fpsContainer = document.querySelector("#fps .fps") as HTMLElement
+        fpsContainer.textContent = `${this.fps}`
+
     }
 
   
@@ -102,10 +106,18 @@ class Engine extends Core {
 
                 //Box collision
                 
-                
-                if(SAT_Collisions.IntersectPolygons(bodyA.getTransformedVertices(), bodyB.getTransformedVertices())) {
+                let collision = SAT_Collisions.IntersectPolygons(bodyA.getTransformedVertices(), bodyB.getTransformedVertices())
+                if(collision) {
+                    collision.normal = Vector.normalize(collision.normal)   
+                    
+                    bodyB.move(Vector.multiply(collision.normal, collision.depth / 2))
+                    bodyA.move(Vector.invert(collision.normal).multiply(collision.depth / 2))
+                    
+                    //Debug Line
                     bodyA.fill = 'rgba(232, 79, 79, .8)'
                     bodyB.fill = 'rgba(232, 79, 79, .8)'  
+
+                    this.drawLine(bodyA.pos, collision.normal.multiply(2), 'red')
                 } 
 
             } 

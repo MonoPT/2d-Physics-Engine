@@ -52,8 +52,10 @@ Core.prototype.drawLine = function (startPos, endPos, color = 'black')  {
     ctx.beginPath();
     ctx.moveTo(startPos.x, startPos.y);
     ctx.lineTo(endPos.x + startPos.x, endPos.y + startPos.y)
-    ctx.restore()
+    ctx.strokeStyle = color
     ctx.stroke();
+    ctx.restore()
+    
 }
 
 Core.prototype.drawCircle = function(centerPos, radius, angle = 0, color = 'black', fill = "rgba(232, 79, 79, 1)") {

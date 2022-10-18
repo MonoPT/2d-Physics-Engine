@@ -175,15 +175,15 @@ export class RigidBody {
         let transformedVertices: Vector[] = []
 
         this.vertices = RigidBody.createBoxVertices(this.Width, this.Height);
-        let positionTest = this.position
+        let position = this.position
         let angle = this.rotation
 
         for (let i = 0; i < this.vertices.length; i++) {
             let v:Vector = this.vertices[i]
             
             transformedVertices[i] = new Vector(
-                Math.cos(angle) * v.x - v.y * Math.sin(angle) + positionTest.x,
-                v.y * Math.cos(angle) + v.x * Math.sin(angle) + positionTest.y
+                Math.cos(angle) * v.x - v.y * Math.sin(angle) + position.x,
+                v.y * Math.cos(angle) + v.x * Math.sin(angle) + position.y
             )
         }
         this.transformedVertices = transformedVertices

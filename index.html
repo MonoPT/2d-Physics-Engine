@@ -26,9 +26,24 @@
         #canvas {
             background: #fff;
         }
+
+        #fps {
+            display: flex;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+        }
+
+        #fps .fps {
+            padding-left: 15px;
+        }
+
+
     </style>
   </head>
   <body>
+    <div id="fps">FPS: <div class="fps"></div></div>
     <div id="app">
         <canvas id="canvas" width="1200" height="675"></canvas>
     </div>
