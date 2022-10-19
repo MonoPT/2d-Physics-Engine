@@ -1,4 +1,4 @@
-import { Vector } from "./engine/Vector";
+import { Vector } from "./engine/math/Vector";
 import Engine  from './engine/engine'
 
 

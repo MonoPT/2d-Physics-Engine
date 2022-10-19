@@ -1,13 +1,6 @@
-import { Vector } from "./Vector";
-import { inputHandler } from "./controls/inputHandler";
-
-export class World {
-    static readonly MinBodySize = 1
-    static readonly MaxBodySize = 64 * 64 * 64
-    static readonly MinDensity = 0.5
-    static readonly MaxDensity = 21.4
-}
-
+import { Vector } from "../math/Vector";
+import { inputHandler } from "../controls/inputHandler";
+import { PhysicsWorld } from "./PhysicsWorld";
 
 class Core{
     ///Base engine

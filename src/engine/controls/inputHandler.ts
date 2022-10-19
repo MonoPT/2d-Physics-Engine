@@ -1,4 +1,4 @@
-import { Vector } from "../Vector"
+import { Vector } from "../math/Vector"
 import { Axis } from "./axis"
 
 export class inputHandler {

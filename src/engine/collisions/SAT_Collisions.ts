@@ -1,4 +1,5 @@
-import { Vector } from "../Vector";
+import Engine from "../engine";
+import { Vector } from "../math/Vector";
 
 export class SAT_Collisions {
 
@@ -159,7 +160,7 @@ export class SAT_Collisions {
 
         let A = SAT_Collisions.projectVetices(Vertices, axis)
         let B = SAT_Collisions.ProjectCircle(circleCenter, circleRadius, axis)
-        
+
         if(A.min > B.max || B.min > A.max) return false
 
         ///Check depth to resolve collision between polygons

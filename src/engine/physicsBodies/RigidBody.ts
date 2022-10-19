@@ -1,6 +1,6 @@
-import { Vector } from "./Vector";
-import { MathLib } from "./mathLib";
-import { World } from "./Core"
+import { Vector } from "../math/Vector";
+import { MathLib } from "../math/mathLib";
+import { PhysicsWorld } from "../core/PhysicsWorld";
 
 export enum ShapeType {
     Circle = 0,
@@ -107,27 +107,31 @@ export class RigidBody {
         return RigidBody.createBoxVertices(this.Width, this.Height);
     }
 
+    debug() {
+        this.fill = "rgba(232, 79, 79, .1)"
+    }
+
     static createCircleBody(radius: number, position: Vector, density: number, isStatic: boolean, restitution: number) : false | RigidBody {
 
         let area:number = radius * radius * Math.PI
 
-        if(area < World.MinBodySize) {
-            console.error(`Area is too small. Min area is ${World.MinBodySize}`)
+        if(area < PhysicsWorld.MinBodySize) {
+            console.error(`Area is too small. Min area is ${PhysicsWorld.MinBodySize}`)
             return false
         }
 
-        if(area > World.MaxBodySize) {
-            console.error(`Area is too big. Max area is ${World.MaxBodySize}`)
+        if(area > PhysicsWorld.MaxBodySize) {
+            console.error(`Area is too big. Max area is ${PhysicsWorld.MaxBodySize}`)
             return false
         }
 
-        if(density < World.MinDensity) {
-            console.error(`Density is too small. Min density is ${World.MinDensity}`)
+        if(density < PhysicsWorld.MinDensity) {
+            console.error(`Density is too small. Min density is ${PhysicsWorld.MinDensity}`)
             return false
         }
 
-        if(density > World.MaxDensity) {
-            console.error(`Density is too big. Max density is ${World.MaxDensity}`)
+        if(density > PhysicsWorld.MaxDensity) {
+            console.error(`Density is too big. Max density is ${PhysicsWorld.MaxDensity}`)
             return false
         }
 
@@ -143,23 +147,23 @@ export class RigidBody {
 
         let area:number = width * height
 
-        if(area < World.MinBodySize) {
-            console.error(`Area is too small. Min area is ${World.MinBodySize}`)
+        if(area < PhysicsWorld.MinBodySize) {
+            console.error(`Area is too small. Min area is ${PhysicsWorld.MinBodySize}`)
             return false
         }
 
-        if(area > World.MaxBodySize) {
-            console.error(`Area is too big. Max area is ${World.MaxBodySize}`)
+        if(area > PhysicsWorld.MaxBodySize) {
+            console.error(`Area is too big. Max area is ${PhysicsWorld.MaxBodySize}`)
             return false
         }
 
-        if(density < World.MinDensity) {
-            console.error(`Density is too small. Min density is ${World.MinDensity}`)
+        if(density < PhysicsWorld.MinDensity) {
+            console.error(`Density is too small. Min density is ${PhysicsWorld.MinDensity}`)
             return false
         }
 
-        if(density > World.MaxDensity) {
-            console.error(`Density is too big. Max density is ${World.MaxDensity}`)
+        if(density > PhysicsWorld.MaxDensity) {
+            console.error(`Density is too big. Max density is ${PhysicsWorld.MaxDensity}`)
             return false
         }
 
@@ -193,8 +197,9 @@ export class RigidBody {
         return transformedVertices
     }
 
-    move(direction: Vector): void {
-        this.position.add(direction)
+    move(amount: Vector): void {
+        //this.linearVelocity = direction
+        this.position.add(amount)
         this.transformUpdateRequired = true
     }
 
@@ -211,5 +216,10 @@ export class RigidBody {
     setRotation(amount: number) {
         this.rotation = amount
         this.transformUpdateRequired = true
+    }
+
+    step(time: number) {
+        this.position.add(Vector.multiply(this.linearVelocity, time))
+        this.rotation += this.rotationalVelociy * time
     }
 }

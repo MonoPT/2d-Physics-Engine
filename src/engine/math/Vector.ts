@@ -105,5 +105,9 @@ export class Vector {
     static cross(v1: Vector, v2: Vector) {
         return v1.x * v2.y + v1.y * v2.x
     }
+
+    clone() {
+        return new Vector(this.x, this.y)
+    }
 }
 

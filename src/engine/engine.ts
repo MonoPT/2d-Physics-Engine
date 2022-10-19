@@ -1,11 +1,12 @@
-import { Vector } from "./Vector";
-import { MathLib } from "./mathLib";
-import Core from "./Core";
-import { RigidBody, ShapeType } from "./RigidBody"
-import { SAT_Collisions } from './collisions/SAT_Collisions'
+import { Vector } from "./math/Vector";
+import { MathLib } from "./math/mathLib";
+import Core from "./core/Core";
+import { PhysicsWorld } from "./core/PhysicsWorld";
+import { RigidBody, ShapeType } from "./physicsBodies/RigidBody"
 
 class Engine extends Core {
     bodyList: RigidBody[] = []
+    private physicsWorld: PhysicsWorld
 
     constructor({canvasElementId}: {canvasElementId: string}) {
         //Validate and create Canvas
@@ -13,7 +14,8 @@ class Engine extends Core {
         let canvas = document.querySelector(`#${canvasElementId}`)
         if(canvas?.nodeName !== "CANVAS") throw console.error(`Element id ${canvasElementId} doesn't belong to a canvas element`);
         super(canvas as HTMLCanvasElement);
-        
+
+        this.physicsWorld = new PhysicsWorld(this)
         this.initialize();
         this.loop(0);
     }
@@ -22,7 +24,6 @@ class Engine extends Core {
         this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
         this.oldTimeStamp = timeStamp;
         let deltaTime = this.secondsPassed
-
 
         // Calculate fps
         this._fps = Math.round(1 / this.secondsPassed)
@@ -36,7 +37,7 @@ class Engine extends Core {
     }
 
     initialize() {
-        for (let index = 0; index < 10; index++) {
+        for (let index = 0; index < 12; index++) {
             let type = Math.random() < .5 ? ShapeType.Box : ShapeType.Circle
             let x = Math.round(MathLib.randomInBeetween(300, this.canvasElement.width / 2))
             let y = Math.round(MathLib.randomInBeetween(120, this.canvasElement.height / 2))
@@ -44,19 +45,14 @@ class Engine extends Core {
                         
             if(type === ShapeType.Circle) {
                 let body = RigidBody.createCircleBody(30, new Vector(x,y), 2, false, 0.5)
-                if(body) this.bodyList.push(body)
+                if(body) this.physicsWorld?.addBody(body)
             } else {
                 let body = RigidBody.createBoxBody(60, 60, new Vector(x,y), 2, false, 0.5) as RigidBody
-                if(body) this.bodyList.push(body)
+                if(body) this.physicsWorld?.addBody(body)
             }
-            //let body = RigidBody.createBoxBody(60, 60, new Vector(x,y), 2, false, 0.5) as RigidBody
-            //if(body) this.bodyList.push(body)
+            
             
         }
-
-        //this.bodyList[0].setRotation(0)
-        //this.bodyList[1].setRotation(-45)
-
     }
 
     protected engineUpdate(deltaTime: number) :void {
@@ -64,15 +60,25 @@ class Engine extends Core {
         super.engineUpdate(deltaTime);
 
         //Handle movement
-        let moveAmt = Vector.normalize(this.InputHandler.movementAxis).multiply(500).multiply(deltaTime)
-        this.bodyList[0].move(moveAmt)
+        let moveAmt = Vector.normalize(this.InputHandler.movementAxis).multiply(500 * deltaTime)
+
+        let player = this.physicsWorld?.getBody(0)
+
+        if(player) player.move(moveAmt)
+
+        
 
         //Make Updates calls
         this.update(deltaTime)
 
+        //Apply physics
+        this.physicsWorld?.Step(deltaTime)
+        
+        
         //Draw elements on canvas
         this.draw()
-
+        
+        //Add fps to screen
         let fpsContainer = document.querySelector("#fps .fps") as HTMLElement
         fpsContainer.textContent = `${this.fps}`
 
@@ -80,123 +86,31 @@ class Engine extends Core {
 
   
 
-    private checkForCollisions() {
-
-        for (let i = 0; i < this.bodyList.length; i++) {
-            let bodyA: RigidBody = this.bodyList[i]
-
-            bodyA.fill = 'rgba(232, 79, 79, .05)'
-        }
-        
-        for (let i = 0; i < this.bodyList.length; i++) {
-            let bodyA: RigidBody = this.bodyList[i]
-
-            for (let j = i + 1; j < this.bodyList.length; j++) {
-                let bodyB: RigidBody = this.bodyList[j]
-              
-                //Circle collision
-                /*let collision = SAT_Collisions.IntersectCircles(bodyA.pos, bodyA.Radius, bodyB.pos, bodyB.Radius)
-                if(collision) {
-                    bodyA.move(Vector.invert(collision.normal).multiply(collision.depth / 2 ))
-                    bodyB.move(collision.normal.multiply(collision.depth / 2))
-                }*/
-
-                //Polygon collision
-                
-                /*let collision = SAT_Collisions.IntersectPolygons(bodyA.getTransformedVertices(), bodyB.getTransformedVertices())
-                if(collision) {
-                    collision.normal = Vector.normalize(collision.normal)   
-                    
-                    bodyB.move(Vector.multiply(collision.normal, collision.depth / 2))
-                    bodyA.move(Vector.invert(collision.normal).multiply(collision.depth / 2))
-                    
-                    //Debug Line
-                    bodyA.fill = 'rgba(232, 79, 79, .8)'
-                    bodyB.fill = 'rgba(232, 79, 79, .8)'  
-
-                    this.drawLine(bodyA.pos, collision.normal.multiply(2), 'red')
-                } */
-
-                //Cirlce Polygon Collision
-
-               
-                if(bodyA.ShapeType === ShapeType.Box && bodyB.ShapeType === ShapeType.Circle) {
-                    let collision = SAT_Collisions.IntersecCirclePolygon(bodyB.pos, bodyB.Radius, bodyA.getTransformedVertices())
-                    if(collision) {
-                        collision.normal = Vector.normalize(collision.normal)   
-                        
-                        bodyB.move(Vector.invert(collision.normal).multiply(collision.depth / 2))
-                        bodyA.move(Vector.multiply(collision.normal, collision.depth / 2))
-                        
-                        
-                        //Debug Line
-                        bodyA.fill = 'rgba(232, 79, 79, .8)'
-                        bodyB.fill = 'rgba(232, 79, 79, .8)'  
-
-                        this.drawLine(bodyA.pos, collision.normal.multiply(2), 'red')
-                    }
-                } else if(bodyA.ShapeType === ShapeType.Circle && bodyB.ShapeType === ShapeType.Box) {
-                    let collision = SAT_Collisions.IntersecCirclePolygon(bodyA.pos, bodyA.Radius, bodyB.getTransformedVertices())
-                    if(collision) {
-                        collision.normal = Vector.normalize(collision.normal)   
-                        
-                        bodyB.move(Vector.multiply(collision.normal, collision.depth / 2))
-                        bodyA.move(Vector.invert(collision.normal).multiply(collision.depth / 2))
-                        
-                        //Debug Line
-                        bodyA.fill = 'rgba(232, 79, 79, .8)'
-                        bodyB.fill = 'rgba(232, 79, 79, .8)'  
-
-                        this.drawLine(bodyA.pos, collision.normal.multiply(2), 'red')
-                    }
-                }
-
-                
-
-            } 
-        }
-    }
+    
 
     
     private draw() {
-        this.checkForCollisions() //Check collisions
         //angle += 0.9
-        
-        this.bodyList.forEach((body:RigidBody) => {
-            let color = this.bodyList[0] === body ? 'blue' : 'red'
-
+        for (let i = 0; i < this.physicsWorld.bodyCount; i++) {
+            let body = this.physicsWorld.getBody(i) as RigidBody
+            
+            let color = this.physicsWorld.getBody(0) === body ? 'blue' : 'red'
+            
             if(body.ShapeType === ShapeType.Circle) {
                 this.drawCircle(body.pos, body.Radius, body.angle, color, body.fill)
             } else {
                 this.drawRectangle(body.pos, body.Width, body.Height, body.angle, color, body.fill)
             }
-        });
-
-      
+        }
+         
     }
 
-    update(deltaTime: number) {
-        for (let index = 0; index < this.bodyList.length; index++) {
-            const body = this.bodyList[index];
-            //body.rotate(Math.PI / 2 * deltaTime )
-            
-        }
+    update(deltaTime: number) {}
+       
 
         
-    }
+    
 }
-
-
-////
-
-
-
-
-
-
-
-
-
 
 
 export default Engine
