@@ -41,10 +41,7 @@ class Engine extends Core {
             let x = Math.round(MathLib.randomInBeetween(300, this.canvasElement.width / 2))
             let y = Math.round(MathLib.randomInBeetween(120, this.canvasElement.height / 2))
             
-            
-            
-            type = ShapeType.Box
-            
+                        
             if(type === ShapeType.Circle) {
                 let body = RigidBody.createCircleBody(30, new Vector(x,y), 2, false, 0.5)
                 if(body) this.bodyList.push(body)
@@ -104,9 +101,9 @@ class Engine extends Core {
                     bodyB.move(collision.normal.multiply(collision.depth / 2))
                 }*/
 
-                //Box collision
+                //Polygon collision
                 
-                let collision = SAT_Collisions.IntersectPolygons(bodyA.getTransformedVertices(), bodyB.getTransformedVertices())
+                /*let collision = SAT_Collisions.IntersectPolygons(bodyA.getTransformedVertices(), bodyB.getTransformedVertices())
                 if(collision) {
                     collision.normal = Vector.normalize(collision.normal)   
                     
@@ -118,22 +115,55 @@ class Engine extends Core {
                     bodyB.fill = 'rgba(232, 79, 79, .8)'  
 
                     this.drawLine(bodyA.pos, collision.normal.multiply(2), 'red')
-                } 
+                } */
+
+                //Cirlce Polygon Collision
+
+               
+                if(bodyA.ShapeType === ShapeType.Box && bodyB.ShapeType === ShapeType.Circle) {
+                    let collision = SAT_Collisions.IntersecCirclePolygon(bodyB.pos, bodyB.Radius, bodyA.getTransformedVertices())
+                    if(collision) {
+                        collision.normal = Vector.normalize(collision.normal)   
+                        
+                        bodyB.move(Vector.invert(collision.normal).multiply(collision.depth / 2))
+                        bodyA.move(Vector.multiply(collision.normal, collision.depth / 2))
+                        
+                        
+                        //Debug Line
+                        bodyA.fill = 'rgba(232, 79, 79, .8)'
+                        bodyB.fill = 'rgba(232, 79, 79, .8)'  
+
+                        this.drawLine(bodyA.pos, collision.normal.multiply(2), 'red')
+                    }
+                } else if(bodyA.ShapeType === ShapeType.Circle && bodyB.ShapeType === ShapeType.Box) {
+                    let collision = SAT_Collisions.IntersecCirclePolygon(bodyA.pos, bodyA.Radius, bodyB.getTransformedVertices())
+                    if(collision) {
+                        collision.normal = Vector.normalize(collision.normal)   
+                        
+                        bodyB.move(Vector.multiply(collision.normal, collision.depth / 2))
+                        bodyA.move(Vector.invert(collision.normal).multiply(collision.depth / 2))
+                        
+                        //Debug Line
+                        bodyA.fill = 'rgba(232, 79, 79, .8)'
+                        bodyB.fill = 'rgba(232, 79, 79, .8)'  
+
+                        this.drawLine(bodyA.pos, collision.normal.multiply(2), 'red')
+                    }
+                }
+
+                
 
             } 
         }
     }
 
-    drawLineDebug: Vector[] = []
     
-
     private draw() {
         this.checkForCollisions() //Check collisions
         //angle += 0.9
         
         this.bodyList.forEach((body:RigidBody) => {
             let color = this.bodyList[0] === body ? 'blue' : 'red'
-            let fill = this.bodyList[0] === body ? 'rgba(79, 79, 232, .3)' : 'rgba(232, 79, 79, .3)'
 
             if(body.ShapeType === ShapeType.Circle) {
                 this.drawCircle(body.pos, body.Radius, body.angle, color, body.fill)
@@ -148,7 +178,7 @@ class Engine extends Core {
     update(deltaTime: number) {
         for (let index = 0; index < this.bodyList.length; index++) {
             const body = this.bodyList[index];
-            body.rotate(Math.PI / 2 * deltaTime )
+            //body.rotate(Math.PI / 2 * deltaTime )
             
         }
 
